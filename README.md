@@ -23,7 +23,7 @@ ansible-playbook site.yaml --tags base -K
 Kubernetes and networking only:
 
 ```bash
-dawodeyi@oss01:~/slu-infra/ansible$ ansible-playbook -i inventory/hosts.ini site.yaml --tags k8s_prep -K
+ansible-playbook -i inventory/hosts.ini site.yaml --tags base -K
 ```
 
 ---
