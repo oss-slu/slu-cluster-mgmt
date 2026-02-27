@@ -1,0 +1,60 @@
+# 1. This needs to run on both nodes to ensure the folders exist
+- name: Create manifests directory
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/coredesk-infra/manifests"
+    state: directory
+    mode: '0755'
+
+# 2. This runs on both to ensure the YAML is ready locally
+- name: Template and copy manifests
+  ansible.builtin.template:
+    src: coredesk-app.yaml.j2
+    dest: "/home/{{ ansible_user }}/coredesk-infra/manifests/coredesk-app.yaml"
+    mode: '0644'
+  register: app_manifest
+
+# 3. ONLY the master needs to tell K8s to apply the file
+- name: Apply Kubernetes manifests
+  ansible.builtin.shell: |
+    microk8s kubectl apply -f /home/{{ ansible_user }}/coredesk-infra/manifests/coredesk-app.yaml
+  run_once: true
+
+# 4. ONLY one node should trigger the restart (Prevents the "patch conflict" error)
+- name: Force rollout to pick up new template variables
+  ansible.builtin.shell: |
+    microk8s kubectl rollout restart deployment/coredesk-app
+  run_once: true
+  ignore_errors: yes # Safety net for rapid re-runs
+  when: app_manifest.changed
+
+# 5. Wait for the rollout to settle
+- name: Wait for pods to be ready
+  ansible.builtin.shell: |
+    microk8s kubectl wait --for=condition=Ready pod -l app=coredesk-app --timeout=120s
+  run_once: true
+
+# 6. Database schema sync
+- name: Run Prisma Database Sync (Force)
+  ansible.builtin.shell: |
+    microk8s kubectl exec deploy/coredesk-app -- npx prisma db push --accept-data-loss
+  register: prisma_result
+  until: prisma_result.rc == 0
+  retries: 5
+  delay: 15
+  run_once: true
+
+# 7. Select the existing admin user to generate a token
+- name: Execute Okta Bypass (Select Existing Admin)
+  ansible.builtin.shell: |
+    # \e[B is Down Arrow (to skip 'Create User'), \n is Enter
+    echo -e "\e[B\n" | microk8s kubectl exec -i deploy/coredesk-app -- npm run okta
+  register: okta_output
+  until: okta_output.rc == 0
+  retries: 2
+  delay: 5
+  run_once: true
+
+- name: Output the Login Token
+  ansible.builtin.debug:
+    msg: "SUCCESS! Your bypass token is: {{ okta_output.stdout_lines | last }}"
+  run_once: true

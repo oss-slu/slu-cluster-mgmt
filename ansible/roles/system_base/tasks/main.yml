@@ -1,0 +1,28 @@
+---
+# 1. Remove the specific list file
+- name: Remove broken Cloudflare repo file
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/cloudflare-client.list
+    state: absent
+  become: yes
+
+# 2. Kill any other Cloudflare references in the main sources or other lists
+- name: Purge Cloudflare references from all apt sources
+  ansible.builtin.shell: "grep -l 'pkg.cloudflare.com' /etc/apt/sources.list.d/* | xargs rm -f || true"
+  become: yes
+  ignore_errors: yes
+
+# 3. NOW run the install
+- name: Install Universal Developer Tools
+  ansible.builtin.apt:
+    name: 
+      - htop
+      - tmux
+      - git
+      - docker.io
+      - docker-compose
+      - tree
+      - net-tools
+    state: present
+    update_cache: yes
+  become: yes

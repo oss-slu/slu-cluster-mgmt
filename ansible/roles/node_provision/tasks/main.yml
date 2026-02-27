@@ -1,0 +1,32 @@
+---
+# Action: Create a standard user environment for the lab
+- name: Ensure the infrastructure user exists
+  user:
+    name: sluinfra
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+
+# Action: Standardize storage for persistence (Database, Logs, etc.)
+- name: Create lab data directory
+  file:
+    path: /mnt/lab_data
+    state: directory
+    owner: sluinfra
+    mode: '0755'
+
+- name: Create specialized DB directory
+  file:
+    path: "{{ db_storage_path }}"
+    state: directory
+    owner: sluinfra
+    mode: '0700'  # Restricted for DB security
+  when: db_storage_path is defined
+
+# Action: Performance Tuning (Universal for High-Availability nodes)
+- name: Optimize system limits for high-traffic services
+  pam_limits:
+    domain: "*"
+    limit_type: "-"
+    limit_item: nofile
+    value: 65535

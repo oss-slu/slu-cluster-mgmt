@@ -1,0 +1,9 @@
+---
+- name: SLU Lab Universal Node Provisioning
+  hosts: "{{ target_group | default('all') }}"
+  become: yes
+  roles:
+    - node_provision  # Sets up Users, Storage, and Kernel limits
+    
+    - role: k8s_prep  # Optional: Joins the K8s cluster
+      when: use_k8s | default(false) == true

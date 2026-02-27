@@ -1,0 +1,10 @@
+# Ignore sensitive variable files
+group_vars/all.yml
+*.env
+.slu_secrets/
+
+# Ignore Ansible retry files
+*.retry
+
+# Ignore OS junk
+.DS_Store

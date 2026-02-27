@@ -1,0 +1,9 @@
+- name: Deploy Open Source SLU Infrastructure
+  hosts: all
+  become: yes
+  roles:
+    - { role: system_base, tags: ['base'] }
+    - { role: k8s_prep, tags: ['k8s_prep'] }
+    - { role: app_deploy, tags: ['app_deploy'] }
+    - { role: app_init, tags: ['app_init'] }
+    - { role: monitoring, tags: ['monitoring'] }

@@ -1,0 +1,14 @@
+- name: Template and copy manifests
+  ansible.builtin.template:
+    src: "../../../manifests/coredesk-app.yaml"
+    dest: "/home/{{ ansible_user }}/coredesk-infra/manifests/coredesk-app.yaml"
+    mode: '0644'
+    force: yes  # Ensures the file is overwritten if variables changed
+  when: "'masters' in group_names"
+
+- name: Apply Kubernetes manifests
+  ansible.builtin.shell: |
+    microk8s kubectl apply -f /home/{{ ansible_user }}/coredesk-infra/manifests/coredesk-app.yaml
+  register: kube_apply
+  changed_when: "'configured' in kube_apply.stdout or 'created' in kube_apply.stdout"
+  when: "'masters' in group_names"

@@ -1,0 +1,16 @@
+- name: Create manifests directory on Master
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/coredesk-infra/manifests
+    state: directory
+  when: "'masters' in group_names"
+
+- name: Template and copy manifests
+  ansible.builtin.template:
+    src: "../../../manifests/coredesk-app.yaml"
+    dest: "/home/{{ ansible_user }}/coredesk-infra/manifests/coredesk-app.yaml"
+  when: "'masters' in group_names"
+
+- name: Apply Kubernetes manifests
+  ansible.builtin.shell: |
+    microk8s kubectl apply -f /home/{{ ansible_user }}/coredesk-infra/manifests/
+  when: "'masters' in group_names"

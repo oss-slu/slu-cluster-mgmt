@@ -1,0 +1,20 @@
+---
+- name: Ensure iptables allows NodePort range
+  become: yes
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "30000:32767"  # Standard K8s NodePort range
+    jump: ACCEPT
+  tags: network
+
+- name: Configure Calico for Dynamic Node Discovery
+  ansible.builtin.shell: |
+    microk8s kubectl set env daemonset/calico-node -n kube-system \
+    IP_AUTODETECTION_METHOD=interface=eth.*,en.*
+  when: "'masters' in group_names"  # This must be outside the shell block
+  run_once: true
+
+- name: Verify MicroK8s is Running
+  ansible.builtin.command: microk8s status --wait-ready
+  changed_when: false

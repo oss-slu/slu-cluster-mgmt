@@ -1,0 +1,21 @@
+- name: Enable MicroK8s Observability (Prometheus/Grafana)
+  ansible.builtin.shell: microk8s enable observability
+  when: "'masters' in group_names"
+  run_once: true
+
+- name: Ensure iptables allows Grafana and Prometheus ports
+  become: yes
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+  loop:
+    - "3000"  # Grafana default
+    - "9090"  # Prometheus default
+  when: "'workers' in group_names"
+
+- name: Ensure Grafana is exposed via NodePort
+  ansible.builtin.shell: |
+    microk8s kubectl patch svc kube-prom-stack-grafana -n observability -p '{"spec": {"type": "NodePort", "ports": [{"port": 80, "targetPort": 3000, "nodePort": 32300}]}}'
+  when: "'masters' in group_names"

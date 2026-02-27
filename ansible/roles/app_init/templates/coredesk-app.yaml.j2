@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredesk-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coredesk-app
+  template:
+    metadata:
+      labels:
+        app: coredesk-app
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: oss02
+      containers:
+        - name: coredesk-app
+          image: jackcranee/sluopenproject-oss:0.0.1
+          env:
+            - name: AWS_BUCKET
+              value: "{{ s3_bucket }}"
+            - name: AWS_REGION
+              value: "{{ s3_region }}"
+            - name: AWS_ENDPOINT
+              value: "{{ s3_endpoint }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: "{{ s3_access_key }}"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "{{ s3_secret_key }}"
+            - name: DATABASE_URL
+              value: "{{ db_url }}"
+            - name: JWT_SECRET
+              value: "{{ jwt_secret }}"
+            - name: NODE_ENV
+              value: "production"
+            - name: PROJECT_NAME
+              value: "CoreDesk"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredesk-service
+spec:
+  type: NodePort
+  selector:
+    app: coredesk-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3030
+      nodePort: 30080
