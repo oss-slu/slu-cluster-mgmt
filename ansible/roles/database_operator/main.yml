@@ -1,0 +1,13 @@
+---
+- name: Install CloudNativePG Operator
+  ansible.builtin.shell: |
+    microk8s kubectl apply -f https://get.enterprisedb.io/cnpg/postgresql-operator-1.22.0.yaml
+  when: "'masters' in group_names"
+  run_once: true
+
+
+- name: Wait for Operator to be ready
+  ansible.builtin.shell: |
+    microk8s kubectl wait --for=condition=Available deployment/cnpg-controller-manager -n cnpg-system --timeout=120s
+  when: "'masters' in group_names"
+  run_once: true

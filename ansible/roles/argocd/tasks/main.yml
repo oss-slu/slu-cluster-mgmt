@@ -1,0 +1,13 @@
+---
+
+- name: Create ArgoCD Namespace
+  ansible.builtin.shell: microk8s kubectl create namespace argocd
+  failed_when: false
+  when: "'masters' in group_names"
+
+
+- name: Install ArgoCD (Force conflicts for Server-Side Apply)
+  ansible.builtin.shell: |
+    microk8s kubectl apply --server-side --force-conflicts -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  when: "'masters' in group_names"
+  run_once: true

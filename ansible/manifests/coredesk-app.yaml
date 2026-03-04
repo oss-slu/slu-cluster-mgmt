@@ -18,20 +18,46 @@ spec:
         - name: coredesk-app
           image: jackcranee/sluopenproject-oss:0.0.1
           env:
+            # S3 Configuration from our new Secret
             - name: AWS_BUCKET
-              value: "{{ s3_bucket }}"
+              valueFrom:
+                secretKeyRef:
+                  name: coredesk-env-secrets
+                  key: AWS_BUCKET
             - name: AWS_REGION
-              value: "{{ s3_region }}"
+              valueFrom:
+                secretKeyRef:
+                  name: coredesk-env-secrets
+                  key: AWS_REGION
             - name: AWS_ENDPOINT
-              value: "{{ s3_endpoint }}"
+              valueFrom:
+                secretKeyRef:
+                  name: coredesk-env-secrets
+                  key: AWS_ENDPOINT
             - name: AWS_ACCESS_KEY_ID
-              value: "{{ s3_access_key }}"
+              valueFrom:
+                secretKeyRef:
+                  name: coredesk-env-secrets
+                  key: AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
-              value: "{{ s3_secret_key }}"
+              valueFrom:
+                secretKeyRef:
+                  name: coredesk-env-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            
+            # Database URI from the CloudNativePG Operator Secret
             - name: DATABASE_URL
-              value: "{{ db_url }}"
+              valueFrom:
+                secretKeyRef:
+                  name: coredesk-db-app
+                  key: uri
+            
+            # JWT and Env settings
             - name: JWT_SECRET
-              value: "{{ jwt_secret }}"
+              valueFrom:
+                secretKeyRef:
+                  name: coredesk-env-secrets
+                  key: JWT_SECRET
             - name: NODE_ENV
               value: "production"
             - name: PROJECT_NAME

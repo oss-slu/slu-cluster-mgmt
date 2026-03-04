@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coredesk-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/oss-slu/slu-cluster-mgmt.git
+    targetRevision: HEAD
+    path: ansible/manifests # The folder Argo CD should watch
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true    # Deletes old resources if you delete them from Git
+      selfHeal: true # Fixes the cluster if someone manually messes with it
