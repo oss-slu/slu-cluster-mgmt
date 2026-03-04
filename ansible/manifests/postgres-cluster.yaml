@@ -2,22 +2,22 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: coredesk-db
-  namespace: default
 spec:
-  instances: 1 # You can scale this to 3 for High Availability later
-  imageName: ghcr.io/cloudnative-pg/postgresql:15
-  
+  instances: 1
   storage:
     size: 10Gi
-    # Matches the storageClassName in your postgres-pv.yaml
-    storageClass: manual 
-  
+    storageClass: manual
+    pvcTemplate:
+      # No 'spec:' here!
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      selector:
+        matchLabels:
+          usage: coredesk-db
   bootstrap:
     initdb:
       database: coredesk
       owner: postgres
-      secret:
-        name: coredesk-db-creds
-
-  monitoring:
-    enablePodMonitor: true # Automatically sends metrics to your new Prometheus stack
