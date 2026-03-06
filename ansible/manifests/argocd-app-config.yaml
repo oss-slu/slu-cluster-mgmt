@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: coredesk-stack
+  name: slu-infra-platform
   namespace: argocd
 spec:
   project: default
