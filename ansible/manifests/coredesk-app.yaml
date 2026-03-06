@@ -14,11 +14,25 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: oss02
+      
+      # --- THE DATABASE INITIALIZER ---
+      # This runs once before the main app starts to create your Prisma tables
+      initContainers:
+        - name: prisma-db-push
+          image: jackcranee/sluopenproject-oss:0.0.1
+          command: ["npx", "prisma", "db", "push", "--accept-data-loss"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: slu-infra-postgres-app
+                  key: uri
+
       containers:
         - name: coredesk-app
           image: jackcranee/sluopenproject-oss:0.0.1
           env:
-            # S3 Configuration from our new Secret
+            # S3 Configuration
             - name: AWS_BUCKET
               valueFrom:
                 secretKeyRef:
@@ -45,11 +59,11 @@ spec:
                   name: coredesk-env-secrets
                   key: AWS_SECRET_ACCESS_KEY
             
-            # Database URI from the CloudNativePG Operator Secret
+            # DATABASE CONNECTION
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: coredesk-db-app
+                  name: slu-infra-postgres-app
                   key: uri
             
             # JWT and Env settings

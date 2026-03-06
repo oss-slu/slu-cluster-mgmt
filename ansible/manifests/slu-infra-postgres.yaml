@@ -1,0 +1,22 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: slu-infra-postgres
+spec:
+  instances: 1
+  
+  
+  storage:
+    size: 10Gi
+    storageClass: microk8s-hostpath
+
+  # MONITORING (The new part)
+  
+  monitoring:
+    enablePodMonitor: true
+
+  # TENANTS
+  bootstrap:
+    initdb:
+      database: coredesk
+      owner: coredesk
